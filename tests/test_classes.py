@@ -3,7 +3,6 @@ import operator
 import math
 from collections.abc import KeysView, ValuesView, ItemsView
 from functools import partial
-from unittest.mock import patch
 
 import pytest
 
