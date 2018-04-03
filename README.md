@@ -1,0 +1,120 @@
+# coordinates
+
+Convenience class for dealing with coordinates which need both maths and explicit ordering.
+
+Supports python 3.4+
+
+## Motivation
+
+Numpy arrays are great for doing maths with coordinates stored as arrays.
+
+Dicts are great for dealing with coordinate systems where the order keeps changing 
+(e.g. between C and Fortran order).
+
+But what if you want both?
+
+(Note: if you're doing *lots* of maths... stick with `numpy`)
+
+## Installation
+
+```bash
+pip install coordinates
+```
+
+## Usage
+
+`Coordinate`s are `Mapping`s (i.e. `dict`-like). They don't expose an interface for mutation, but
+we're all consenting adults so if you really want to modify the internal `_dict`, I won't
+stop you.
+
+They can be instantiated in any of the ways a `dict` can (from another `Mapping`, a sequence of pairs,
+or some keyword arguments).
+
+Coordinates do maths like you might expect them to, where the other operand is anything dict-like
+with the same keys, or a number.
+
+```python
+from coordinates import Coordinate
+
+coord = Coordinate(x=1, y=2, z=3)
+
+coord * 2 == Coordinate(x=2, y=4, z=3)
+>>> True
+
+coord ** 2 == Coordinate(x=1, y=4, z=9)
+>>> True
+
+coord + coord == Coordinate(x=2, y=4, z=3)
+>>> True
+
+coord += 1  # coord is a reference to a new object; no mutation
+coord == Coordinate(x=2, y=3, z=4)
+>>> True
+
+abs(Coordinate(x=-10, y=10)) == Coordinate(x=10, y=10)
+>>> True
+
+import math
+math.ceil(Coordinate(x=0.5)) == Coordinate(x=1)
+>>> True
+
+math.floor(Coordinate(x=0.5)) == Coordinate(x=0)
+>>> True
+```
+
+They also have some convenience methods for getting the sum, product or norm of their keys.
+
+```python
+coord.sum() == 9
+>>> True
+
+coord.prod() == 24
+>>> True
+
+Coordinate(x=3, y=4).norm(order=2) == 5
+>>>True
+```
+
+You can get the keys, values or items of the `Coordinate` in a specific order:
+
+```python
+coord.to_list('yxz') == [2, 1, 3]
+>>> True
+
+list(coord.keys('yxz')) == ['y', 'x', 'z']
+>>> True
+```
+
+The default order for a single instance can be given on instantiation, or mutated (this does not affect equality).
+
+The default order for all `Coordinate`s can be set on the class. This affects existing instances, but does not 
+override their order if it was set explicitly.
+
+If neither an instance `order` or a class `default_order` is set, it falls back to reverse lexicographic.
+
+```python
+coord3 = Coordinate(x=1, y=2, z=3, order='zxy')
+coord3.order = 'yzx'
+
+Coordinate.default_order = 'xyz'
+```
+
+If you're working in one space, the `spaced_coordinate` factory can create custom subclasses with a fixed set of
+keys and optionally a default order.
+
+```python
+from coordinates import spaced_coordinate
+CoordinateXYZC = spaced_coordinate('CoordinateXYZC', 'xyzc')
+
+# this will raise a ValueError
+CoordinateXYZC(x=1, y=2, z=3)
+```
+
+Coordinate values can be accessed with dict-like syntax (`coord['x']`, `coord.get('y', 2)`) or, for convenience,
+attribute-like (`coord.z`) if the keys are strings.
+
+## Note
+
+If you don't want the order-related functionality for another application, the base class `MathDict` is 
+implemented here too.
+
