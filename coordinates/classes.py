@@ -153,8 +153,6 @@ class Coordinate(MathDict):
             super().__init__(d)
         except TypeError as e:
             msg = str(e)
-            if not ('dict' in msg or 'cannot convert' in msg):
-                raise e
             keys = order or self.default_order
             if keys is None:
                 raise TypeError('Cannot parse arguments with no order') from e

@@ -114,6 +114,18 @@ class TestCoordinate(TestMathDict):
         finally:
             self.Class.default_order = old_order
 
+    def test_from_sequence_dicts(self):
+        list(self.Class.from_sequence([
+            {'a': 1, 'b': 2},
+            {'a': 4, 'b': 5},
+        ], c=10))
+
+    def test_from_sequence_lists(self):
+        list(self.Class.from_sequence([
+            [1, 2, 3],
+            [4, 5, 6],
+        ], order='abc'))
+
     @pytest.mark.parametrize('order,expected_order', [('cba', 'cba'), ('abc', 'abc')])
     def test_order(self, keys_vals, order, expected_order):
         obj = self.Class(keys_vals, order=order)
