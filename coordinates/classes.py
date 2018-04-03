@@ -144,13 +144,16 @@ class Coordinate(MathDict):
 
         If the class has no ``default_order`` and no ``order`` kwarg is given, order will be set as reverse
         lexicographic.
+
+        If the class has a ``default_order`` or an ``order`` kwarg is given, a sequence or *args of values
+        can also be used, if the length matches the length of the order.
         """
         try:
             d = dict(*args, **kwargs)
             super().__init__(d)
         except TypeError as e:
             msg = str(e)
-            if not ('dict expected' in msg or 'cannot convert' in msg):
+            if not ('dict' in msg or 'cannot convert' in msg):
                 raise e
             keys = order or self.default_order
             if keys is None:
@@ -211,6 +214,7 @@ class Coordinate(MathDict):
 
     @classmethod
     def from_sequence(cls, seq, order=None, **kwargs):
+        """Yield from a sequence of Mappings, or (if order is given), sequences"""
         for arg in seq:
             yield cls(arg, order=order, **kwargs)
 
