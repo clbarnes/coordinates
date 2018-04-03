@@ -1,5 +1,7 @@
 # coordinates
 
+[![Build Status](https://travis-ci.org/clbarnes/coordinates.svg?branch=master)](https://travis-ci.org/clbarnes/coordinates)
+
 Convenience class for dealing with coordinates which need both maths and explicit ordering.
 
 Supports python 3.4+
