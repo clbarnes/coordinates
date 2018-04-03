@@ -3,6 +3,7 @@ import operator
 import math
 from collections.abc import KeysView, ValuesView, ItemsView
 from functools import partial
+from unittest.mock import patch
 
 import pytest
 
@@ -45,7 +46,7 @@ class TestMathDict(object):
         ([{'a': 1, 'b': 2}], {'c': 3}),
         ([[('a', 1), ('b', 2), ('c', 3)]], dict()),
     ])
-    def test_instantiate(self, args, kwargs):
+    def test_instantiate_like_dict(self, args, kwargs):
         self.Class(*args, **kwargs)
 
     @pytest.mark.parametrize('ntype', ntypes)
@@ -97,6 +98,21 @@ class TestMathDict(object):
 
 class TestCoordinate(TestMathDict):
     Class = Coordinate
+
+    @pytest.mark.parametrize('args', [(1, 2, 3), ([1, 2, 3],)])
+    def test_instantiate_from_order(self, args):
+        obj = self.Class(*args, order='abc')
+        assert obj == {'a': 1, 'b': 2, 'c': 3}
+
+    @pytest.mark.parametrize('args', [(1, 2, 3), ([1, 2, 3],)])
+    def test_instantiate_from_default_order(self, args):
+        try:
+            old_order = self.Class.default_order
+            self.Class.default_order = 'abc'
+            obj = self.Class(*args)
+            assert obj == {'a': 1, 'b': 2, 'c': 3}
+        finally:
+            self.Class.default_order = old_order
 
     @pytest.mark.parametrize('order,expected_order', [('cba', 'cba'), ('abc', 'abc')])
     def test_order(self, keys_vals, order, expected_order):
@@ -151,4 +167,4 @@ class TestSpacedCoordinate(TestCoordinate):
 
 
 if __name__ == '__main__':
-    pytest.main()
+    pytest.main(['test_classes.py::TestCoordinate::test_instantiate_from_order'])

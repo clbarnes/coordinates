@@ -27,15 +27,54 @@ pip install coordinates
 we're all consenting adults so if you really want to modify the internal `_dict`, I won't
 stop you.
 
+### Instantiation
+
 They can be instantiated in any of the ways a `dict` can (from another `Mapping`, a sequence of pairs,
-or some keyword arguments).
+some keyword arguments, or a mixture of the above).
+
+```python
+from coordinates import Coordinate
+
+Coordinate({'x': 1, 'y': 2})
+Coordinate({'x': 1}, y=2)
+Coordinate([('x', 1), ('y', 2)])
+Coordinate(x=1, y=2)
+```
+
+If an order is defined (more on this later), you can also instantiate a `Coordinate` from a single 
+argument which is a sequence, or from a number of `*args`.
+
+```python
+Coordinate([1, 2], order='xy')
+Coordinate(1, 2, order='xy')
+
+Coordinate.default_order = 'xy'
+Coordinate([1, 2])
+Coordinate(1, 2)
+```
+
+Because `Mapping`s can be instantiated from other `Mapping`s, you can "extend" existing coordinates 
+into new dimensions.
+
+```python
+coord_2d = Coordinate(x=1, y=2)
+coord_3d = Coordinate(coord_2d, z=3)
+```
+
+Finally, many `Coordinate`s can be instantiated at once (with lazy evaluation) using `from_sequence`:
+
+```python
+Coordinate.from_sequence([(1, 2), (3, 4)], order='xy')
+Coordinate.from_sequence([{'x': 1, 'y': 2}, {'x': 3, 'y': 4}], z=10)
+# N.B. `order`-dependent argument cannot be mixed with `**kwargs`
+```
+
+### Maths
 
 Coordinates do maths like you might expect them to, where the other operand is anything dict-like
 with the same keys, or a number.
 
 ```python
-from coordinates import Coordinate
-
 coord = Coordinate(x=1, y=2, z=3)
 
 coord * 2 == Coordinate(x=2, y=4, z=3)
@@ -75,6 +114,8 @@ Coordinate(x=3, y=4).norm(order=2) == 5
 >>>True
 ```
 
+### Ordering
+
 You can get the keys, values or items of the `Coordinate` in a specific order:
 
 ```python
@@ -99,6 +140,8 @@ coord3.order = 'yzx'
 Coordinate.default_order = 'xyz'
 ```
 
+### Subclassing
+
 If you're working in one space, the `spaced_coordinate` factory can create custom subclasses with a fixed set of
 keys and optionally a default order.
 
@@ -109,6 +152,10 @@ CoordinateXYZC = spaced_coordinate('CoordinateXYZC', 'xyzc')
 # this will raise a ValueError
 CoordinateXYZC(x=1, y=2, z=3)
 ```
+
+Or you can subclass `Coordinate` directly.
+
+### Value access
 
 Coordinate values can be accessed with dict-like syntax (`coord['x']`, `coord.get('y', 2)`) or, for convenience,
 attribute-like (`coord.z`) if the keys are strings.

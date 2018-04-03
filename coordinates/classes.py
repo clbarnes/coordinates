@@ -112,15 +112,18 @@ class MathDict(Mapping):
         return self.__binary_op(operator.ipow, other)
 
     def sum(self):
+        """Find the sum of the values"""
         return sum(self.values())
 
     def prod(self):
+        """Find the product of the values"""
         p = 1
         for val in self.values():
             p *= val
         return p
 
     def norm(self, order=2):
+        """Find the vector norm, with the given order, of the values"""
         return (sum(val**order for val in abs(self).values()))**(1/order)
 
 
@@ -142,7 +145,27 @@ class Coordinate(MathDict):
         If the class has no ``default_order`` and no ``order`` kwarg is given, order will be set as reverse
         lexicographic.
         """
-        super().__init__(*args, **kwargs)
+        try:
+            d = dict(*args, **kwargs)
+            super().__init__(d)
+        except TypeError as e:
+            msg = str(e)
+            if not ('dict expected' in msg or 'cannot convert' in msg):
+                raise e
+            keys = order or self.default_order
+            if keys is None:
+                raise TypeError('Cannot parse arguments with no order') from e
+
+            if len(args) == len(keys):
+                values = args
+            elif len(args[0]) == len(keys):
+                values = args[0]
+            else:
+                raise TypeError('args do not match length of `order`') from e
+
+            d = dict(zip(keys, values), **kwargs)
+            super().__init__(d)
+
         self._order = order
         self._validate()
 
@@ -167,12 +190,15 @@ class Coordinate(MathDict):
         return OrderedDict((key, self[key]) for key in order if key in self)
 
     def keys(self, order=None):
+        """Return a KeysView in the given order, or the instance's ``order``, or the class' ``default_order``"""
         return KeysView(self._to_ordered_dict(order or self.order))
 
     def values(self, order=None):
+        """Return a ValuesView in the given order, or the instance's ``order``, or the class' ``default_order``"""
         return ValuesView(self._to_ordered_dict(order or self.order))
 
     def items(self, order=None):
+        """Return an ItemsView in the given order, or the instance's ``order``, or the class' ``default_order``"""
         return ItemsView(self._to_ordered_dict(order or self.order))
 
     def __repr__(self):
@@ -180,13 +206,36 @@ class Coordinate(MathDict):
         return '{class_name}({{{keyvals}}})'.format(class_name=type(self).__name__, keyvals=keyvals)
 
     def _validate(self):
+        """Not implemented, but called at the end of the constructor"""
         pass  # to be overridden in subclasses
+
+    @classmethod
+    def from_sequence(cls, seq, order=None, **kwargs):
+        for arg in seq:
+            yield cls(arg, order=order, **kwargs)
 
 
 def spaced_coordinate(name, keys, ordered=True):
+    """
+    Create a subclass of Coordinate, instances of which must have exactly the given keys.
+
+    Parameters
+    ----------
+    name : str
+        Name of the new class
+    keys : sequence
+        Keys which instances must exclusively have
+    ordered : bool
+        Whether to set the class' ``default_order`` based on the order of ``keys``
+
+    Returns
+    -------
+    type
+    """
     def validate(self):
+        """Raise a ValueError if the instance's keys are incorrect"""
         if set(keys) != set(self):
             raise ValueError('{} needs keys {} and got {}'.format(type(self).__name__, keys, tuple(self)))
 
-    new_class = type(name, (Coordinate, ), {'default_order': keys, '_validate': validate})
+    new_class = type(name, (Coordinate, ), {'default_order': keys if ordered else None, '_validate': validate})
     return new_class
