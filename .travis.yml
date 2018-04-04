@@ -10,8 +10,6 @@ before_script:
 - pip install tox-travis
 script:
 - tox
-before_deploy:
-  - make dist
 deploy:
   provider: pypi
   user: clbarnes
@@ -19,7 +17,6 @@ deploy:
     secure: H2euDsUT8pZ7AKXKxdpMeFhriVN+e+OSU5kQFRzOIxgONTFrEcL3A2cPt7YwHA5TzQdADO1qispRoVbhvfzl4iBfI0XuMOp+JBbpdnSrxx4DRaPUVnL0oQcaD/JvzDVLRu3qSURowbNz1JOZdY34Te9Hr+uG+lxeqTTtuVbwf+kYUvXIwQJcR95PKvDxX/exyOro4nSrUHiVH3DQRyZgTAg8AzkX7Valkkgxh0WfiyZQM5FuHn7CE7lny4rjNuYvecmzjok939vJHbpjOsAeUctNZOJcDGRWDyt1a3b+z/hKygBsifKYiwXLt43wZIBguegAOySTWtDm8VVLwDRb0KsdhVcV8gThFQHq+v8qgKi534hUwtvK1p7ONnR8QJDTd2ijWrNpfLrqCclsMNX9CCtzIJy8zxWxx8Rkxbst+hIlpBdcbJhfIHDmA1JrdSS1NniLcyHmgELaDco93ucARxWzOfunYC9yz7aiOwm+oKQ1M15XIYDISeNEYRZVRy7bL9zWh+NxYkg0SPRGtj6Kn/HH/cJ4kUs7XuiQCd3bIKvtsG964dqlMNYWkXWPGkXKm5ZZNU6FJR9NmCYvZ3J+aCzc9XRZ3JZ5/g35H9EosmbbwDNenpSf+4wXoLo3Ma0p0tSzaNcYP1kkDVxKSIimrEYMvPmr5h9umfYV0kFMJZY=
   on:
     tags: true
-    branch: release
     repo: clbarnes/coordinates
     python: 3.6
   distributions: "sdist bdist_wheel"
