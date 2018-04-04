@@ -20,10 +20,30 @@ unary_ops = (
     math.ceil, math.floor, math.trunc, partial(round, ndigits=1)
 )
 
+
+def rename(name):
+    """https://stackoverflow.com/a/10874474"""
+    def decorator(fn):
+        fn.__name__ = name
+        return fn
+    return decorator
+
+
+def reverse(fn):
+    @rename('r' + fn.__name__)
+    def wrapped(a, b):
+        return fn(b, a)
+    return wrapped
+
+
 binary_ops = (
     operator.add, operator.sub, operator.mul, operator.floordiv, operator.truediv, operator.mod, operator.pow,
-    operator.iadd, operator.isub, operator.imul, operator.ifloordiv, operator.itruediv, operator.imod, operator.ipow
+    operator.iadd, operator.isub, operator.imul, operator.ifloordiv, operator.itruediv, operator.imod, operator.ipow,
 )
+
+binary_ops += tuple(reverse(op) for op in [
+    operator.add, operator.sub, operator.mul, operator.floordiv, operator.truediv, operator.mod, operator.pow
+])
 
 
 @pytest.fixture(params=[5.5, {'a': 5, 'b': 15, 'c': -30.5}], ids=['number', 'dict'])
@@ -36,7 +56,7 @@ def keys_vals():
     return ('a', 10), ('b', -20), ('c', 1.5)
 
 
-class TestMathDict(object):
+class TestMathDict:
     Class = MathDict
 
     @pytest.mark.parametrize('args,kwargs', [
@@ -94,8 +114,33 @@ class TestMathDict(object):
         assert obj.b == 2
         assert obj.c == 3
 
+    def test_map(self):
+        obj = self.Class(a=1, b=2, c=3)
+        assert obj.map(lambda x: x*10) == self.Class(a=10, b=20, c=30)
 
-class TestCoordinate(TestMathDict):
+    def test_divmod(self):
+        obj = self.Class(a=10, b=101, c=1002)
+        other = self.Class(a=10, b=100, c=1000)
+        div, mod = divmod(obj, other)
+        assert div == self.Class(a=1, b=1, c=1)
+        assert mod == self.Class(a=0, b=1, c=2)
+
+    def test_divmod_number(self):
+        obj = self.Class(a=10, b=101, c=1002)
+        other = 10
+        div, mod = divmod(obj, other)
+        assert div == self.Class(a=1, b=10, c=100)
+        assert mod == self.Class(a=0, b=1, c=2)
+
+    def test_rdivmod_number(self):
+        obj = self.Class(a=10, b=99, c=30)
+        other = 100
+        div, mod = divmod(other, obj)
+        assert div == self.Class(a=10, b=1, c=3)
+        assert mod == self.Class(a=0, b=1, c=10)
+
+
+class TestCoordinate:
     Class = Coordinate
 
     @pytest.mark.parametrize('args', [(1, 2, 3), ([1, 2, 3],)])
@@ -164,8 +209,22 @@ class TestCoordinate(TestMathDict):
         if method == 'items':
             assert list(view) == [(key, d[key]) for key in order]
 
+    @pytest.mark.parametrize('op', unary_ops)
+    def test_unary_ops_preserve_order(self, keys_vals, op):
+        obj = self.Class(keys_vals, order='bac')
+        result = op(obj)
+        assert result._order
+        assert result._order == obj._order
 
-class TestSpacedCoordinate(TestCoordinate):
+    @pytest.mark.parametrize('op', binary_ops)
+    def test_binary_ops_preserve_order(self, keys_vals, op, operand):
+        obj = self.Class(keys_vals, order='bac')
+        result = op(obj, operand)
+        assert result._order
+        assert result._order == obj._order
+
+
+class TestSpacedCoordinate:
     Class = spaced_coordinate('CoordinateCAB', 'cab')
 
     def test_order_is_set(self):
@@ -178,4 +237,4 @@ class TestSpacedCoordinate(TestCoordinate):
 
 
 if __name__ == '__main__':
-    pytest.main(['test_classes.py::TestCoordinate::test_instantiate_from_order'])
+    pytest.main()

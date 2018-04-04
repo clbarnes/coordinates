@@ -1,3 +1,4 @@
+import functools
 import operator
 from collections import OrderedDict
 from numbers import Number
@@ -41,75 +42,124 @@ class MathDict(Mapping):
     def __round__(self, n=None):
         return type(self)({key: round(val, n) for key, val in self.items()})
 
-    def __unary_op(self, op):
+    def _unary_op(self, op):
         return type(self)({key: op(val) for key, val in self.items()})
 
     def __neg__(self):
-        return self.__unary_op(operator.neg)
+        return self._unary_op(operator.neg)
 
     def __pos__(self):
-        return self.__unary_op(operator.pos)
+        return self._unary_op(operator.pos)
 
     def __abs__(self):
-        return self.__unary_op(operator.abs)
+        return self._unary_op(operator.abs)
 
     def __ceil__(self):
-        return self.__unary_op(math.ceil)
+        return self._unary_op(math.ceil)
 
     def __floor__(self):
-        return self.__unary_op(math.floor)
+        return self._unary_op(math.floor)
 
     def __trunc__(self):
-        return self.__unary_op(math.trunc)
+        return self._unary_op(math.trunc)
 
-    def __binary_op(self, op, other):
+    def _binary_op(self, op, other):
         if isinstance(other, Number):
             other = {key: other for key in self.keys()}
-        elif not self.keys() == other.keys():
+        elif not hasattr(other, 'keys'):
+            return NotImplemented
+        elif self.keys() != other.keys():
             raise KeyError('{} and {} do not have the same keys'.format(self, other))
         return type(self)({key: op(val, other[key]) for key, val in self.items()})
 
     def __add__(self, other):
-        return self.__binary_op(operator.add, other)
+        return self._binary_op(operator.add, other)
+
+    def __radd__(self, other):
+        return self + other
 
     def __sub__(self, other):
-        return self.__binary_op(operator.sub, other)
+        return self._binary_op(operator.sub, other)
+
+    def __rsub__(self, other):
+        return -self + other
 
     def __mul__(self, other):
-        return self.__binary_op(operator.mul, other)
+        return self._binary_op(operator.mul, other)
+
+    def __rmul__(self, other):
+        return self * other
 
     def __floordiv__(self, other):
-        return self.__binary_op(operator.floordiv, other)
+        return self._binary_op(operator.floordiv, other)
+
+    def __rfloordiv__(self, other):
+        return math.floor(other/self)
 
     def __truediv__(self, other):
-        return self.__binary_op(operator.truediv, other)
+        return self._binary_op(operator.truediv, other)
+
+    def __rtruediv__(self, other):
+        if isinstance(other, Number):
+            other = {key: other for key in self.keys()}
+        elif not hasattr(other, 'keys'):
+            return NotImplemented
+        elif self.keys() != other.keys():
+            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+        return type(self)({key: other[key] / val for key, val in self.items()})
 
     def __mod__(self, other):
-        return self.__binary_op(operator.mod, other)
+        return self._binary_op(operator.mod, other)
+
+    def __rmod__(self, other):
+        if isinstance(other, Number):
+            other = {key: other for key in self.keys()}
+        elif not hasattr(other, 'keys'):
+            return NotImplemented
+        elif self.keys() != other.keys():
+            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+        return type(self)({key: other[key] % val for key, val in self.items()})
+
+    def __divmod__(self, other):
+        mod = self % other
+        return math.floor((self - mod) / other), mod
+
+    def __rdivmod__(self, other):
+        mod = other % self
+        return math.floor((other - mod) / self), mod
 
     def __pow__(self, other):
-        return self.__binary_op(operator.pow, other)
+        return self._binary_op(operator.pow, other)
+
+    def __rpow__(self, other):
+        if isinstance(other, Number):
+            other = {key: other for key in self.keys()}
+        elif not hasattr(other, 'keys'):
+            return NotImplemented
+        elif self.keys() != other.keys():
+            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+        return type(self)({key: other[key]**val for key, val in self.items()})
 
     def __iadd__(self, other):
-        return self.__binary_op(operator.iadd, other)
+        return self._binary_op(operator.iadd, other)
 
     def __isub__(self, other):
-        return self.__binary_op(operator.isub, other)
+        return self._binary_op(operator.isub, other)
 
     def __imul__(self, other):
-        return self.__binary_op(operator.imul, other)
+        return self._binary_op(operator.imul, other)
 
     def __ifloordiv__(self, other):
-        return self.__binary_op(operator.ifloordiv, other)
+        return self._binary_op(operator.ifloordiv, other)
 
     def __itruediv__(self, other):
-        return self.__binary_op(operator.itruediv, other)
+        return self._binary_op(operator.itruediv, other)
 
     def __imod__(self, other):
-        return self.__binary_op(operator.imod, other)
+        return self._binary_op(operator.imod, other)
 
     def __ipow__(self, other):
-        return self.__binary_op(operator.ipow, other)
+        return self._binary_op(operator.ipow, other)
 
     def sum(self):
         """Find the sum of the values"""
@@ -125,6 +175,18 @@ class MathDict(Mapping):
     def norm(self, order=2):
         """Find the vector norm, with the given order, of the values"""
         return (sum(val**order for val in abs(self).values()))**(1/order)
+
+    def map(self, fn, *args, **kwargs):
+        return type(self)({key: fn(val, *args, **kwargs) for key, val in self.items()})
+
+
+def preserve_order(fn):
+    @functools.wraps(fn)
+    def wrapped(self, *args, **kwargs):
+        result = fn(self, *args, **kwargs)
+        result._order = self._order
+        return result
+    return wrapped
 
 
 class Coordinate(MathDict):
@@ -152,7 +214,6 @@ class Coordinate(MathDict):
             d = dict(*args, **kwargs)
             super().__init__(d)
         except TypeError as e:
-            msg = str(e)
             keys = order or self.default_order
             if keys is None:
                 raise TypeError('Cannot parse arguments with no order') from e
@@ -215,6 +276,14 @@ class Coordinate(MathDict):
         """Yield from a sequence of Mappings, or (if order is given), sequences"""
         for arg in seq:
             yield cls(arg, order=order, **kwargs)
+
+    _unary_op = preserve_order(MathDict._unary_op)
+    _binary_op = preserve_order(MathDict._binary_op)
+    __round__ = preserve_order(MathDict.__round__)
+    __rmod__ = preserve_order(MathDict.__rmod__)
+    __rtruediv__ = preserve_order(MathDict.__rtruediv__)
+    __rpow__ = preserve_order(MathDict.__rpow__)
+    map = preserve_order(MathDict.map)
 
 
 def spaced_coordinate(name, keys, ordered=True):
