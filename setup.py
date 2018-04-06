@@ -13,7 +13,7 @@ with open(os.path.join(here, 'coordinates', 'version.py')) as f:
 setup(
     name='coordinates',
     version=__version__,
-    packages=find_packages(),
+    packages=find_packages(exclude=('tests',)),
     url='https://github.com/clbarnes/coordinates',
     license='MIT',
     author='Chris L Barnes',
