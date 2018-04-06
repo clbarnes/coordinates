@@ -66,10 +66,13 @@ coord_3d = Coordinate(coord_2d, z=3)
 Finally, many `Coordinate`s can be instantiated at once (with lazy evaluation) using `from_sequence`:
 
 ```python
-Coordinate.from_sequence([(1, 2), (3, 4)], order='xy')
+Coordinate.from_sequence([(1, 2, 3), (3, 4, 5)], order='xyz')
 Coordinate.from_sequence([{'x': 1, 'y': 2}, {'x': 3, 'y': 4}], z=10)
 # N.B. `order`-dependent argument cannot be mixed with `**kwargs`
 ```
+
+N.B. instantiation from a sequence of tuples will fail in 2D because it will be interpreted as 
+key-value pairs. Use a comprehension here instead: `Coordinate.from_sequence(zip('xy', row) for row in sequence)`
 
 ### Maths
 
@@ -113,7 +116,7 @@ coord.prod() == 24
 >>> True
 
 Coordinate(x=3, y=4).norm(order=2) == 5
->>>True
+>>> True
 ```
 
 ### Ordering
@@ -166,4 +169,3 @@ attribute-like (`coord.z`) if the keys are strings.
 
 If you don't want the order-related functionality for another application, the base class `MathDict` is 
 implemented here too.
-
