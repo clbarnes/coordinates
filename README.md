@@ -63,15 +63,17 @@ coord_2d = Coordinate(x=1, y=2)
 coord_3d = Coordinate(coord_2d, z=3)
 ```
 
-Finally, many `Coordinate`s can be instantiated at once (with lazy evaluation) using `from_sequence`:
+Finally, many `Coordinate`s can be instantiated lazily using `from_sequence`:
 
 ```python
 Coordinate.from_sequence([(1, 2, 3), (3, 4, 5)], order='xyz')
 Coordinate.from_sequence([{'x': 1, 'y': 2}, {'x': 3, 'y': 4}], z=10)
-# N.B. `order`-dependent argument cannot be mixed with `**kwargs`
 ```
 
-N.B. instantiation from a sequence of tuples will fail in 2D because it will be interpreted as 
+To note: 
+
+- `order`-dependent instantiation is incompatible with `**kwargs`
+- Instantiation from a sequence of tuples will fail in 2D because it will be interpreted as 
 key-value pairs. Use a comprehension here instead: `Coordinate.from_sequence(zip('xy', row) for row in sequence)`
 
 ### Maths
@@ -82,7 +84,7 @@ with the same keys, or a number.
 ```python
 coord = Coordinate(x=1, y=2, z=3)
 
-coord * 2 == Coordinate(x=2, y=4, z=3)
+coord * 2 == Coordinate(x=2, y=4, z=6)
 >>> True
 
 coord ** 2 == Coordinate(x=1, y=4, z=9)
@@ -127,7 +129,7 @@ You can get the keys, values or items of the `Coordinate` in a specific order:
 coord.to_list('yxz') == [2, 1, 3]
 >>> True
 
-list(coord.keys('yxz')) == ['y', 'x', 'z']
+list(coord.items('yxz')) == [('y', 2), ('x', 1), ('z', 3)]
 >>> True
 ```
 
