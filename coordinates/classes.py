@@ -6,7 +6,7 @@ from collections.abc import Mapping, KeysView, ValuesView, ItemsView
 
 import math
 
-__all__ = ['Coordinate', 'spaced_coordinate']
+__all__ = ["Coordinate", "spaced_coordinate"]
 
 
 class MathDict(Mapping):
@@ -28,7 +28,9 @@ class MathDict(Mapping):
         try:
             return self[item]
         except KeyError:
-            raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, item))
+            raise AttributeError(
+                "'{}' object has no attribute '{}'".format(type(self).__name__, item)
+            )
 
     def __iter__(self):
         return iter(self._dict)
@@ -37,7 +39,7 @@ class MathDict(Mapping):
         return len(self._dict)
 
     def __repr__(self):
-        return '{class_name}({d})'.format(class_name=type(self).__name__, d=self._dict)
+        return "{class_name}({d})".format(class_name=type(self).__name__, d=self._dict)
 
     def __round__(self, n=None):
         return type(self)({key: round(val, n) for key, val in self.items()})
@@ -66,10 +68,10 @@ class MathDict(Mapping):
     def _binary_op(self, op, other):
         if isinstance(other, Number):
             other = {key: other for key in self.keys()}
-        elif not hasattr(other, 'keys'):
+        elif not hasattr(other, "keys"):
             return NotImplemented
         elif self.keys() != other.keys():
-            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+            raise KeyError("{} and {} do not have the same keys".format(self, other))
         return type(self)({key: op(val, other[key]) for key, val in self.items()})
 
     def __add__(self, other):
@@ -94,7 +96,7 @@ class MathDict(Mapping):
         return self._binary_op(operator.floordiv, other)
 
     def __rfloordiv__(self, other):
-        return math.floor(other/self)
+        return math.floor(other / self)
 
     def __truediv__(self, other):
         return self._binary_op(operator.truediv, other)
@@ -102,10 +104,10 @@ class MathDict(Mapping):
     def __rtruediv__(self, other):
         if isinstance(other, Number):
             other = {key: other for key in self.keys()}
-        elif not hasattr(other, 'keys'):
+        elif not hasattr(other, "keys"):
             return NotImplemented
         elif self.keys() != other.keys():
-            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+            raise KeyError("{} and {} do not have the same keys".format(self, other))
         return type(self)({key: other[key] / val for key, val in self.items()})
 
     def __mod__(self, other):
@@ -114,10 +116,10 @@ class MathDict(Mapping):
     def __rmod__(self, other):
         if isinstance(other, Number):
             other = {key: other for key in self.keys()}
-        elif not hasattr(other, 'keys'):
+        elif not hasattr(other, "keys"):
             return NotImplemented
         elif self.keys() != other.keys():
-            raise KeyError('{} and {} do not have the same keys'.format(self, other))
+            raise KeyError("{} and {} do not have the same keys".format(self, other))
         return type(self)({key: other[key] % val for key, val in self.items()})
 
     def __divmod__(self, other):
@@ -134,11 +136,11 @@ class MathDict(Mapping):
     def __rpow__(self, other):
         if isinstance(other, Number):
             other = {key: other for key in self.keys()}
-        elif not hasattr(other, 'keys'):
+        elif not hasattr(other, "keys"):
             return NotImplemented
         elif self.keys() != other.keys():
-            raise KeyError('{} and {} do not have the same keys'.format(self, other))
-        return type(self)({key: other[key]**val for key, val in self.items()})
+            raise KeyError("{} and {} do not have the same keys".format(self, other))
+        return type(self)({key: other[key] ** val for key, val in self.items()})
 
     def __iadd__(self, other):
         return self._binary_op(operator.iadd, other)
@@ -174,7 +176,7 @@ class MathDict(Mapping):
 
     def norm(self, order=2):
         """Find the vector norm, with the given order, of the values"""
-        return (sum(val**order for val in abs(self).values()))**(1/order)
+        return (sum(val ** order for val in abs(self).values())) ** (1 / order)
 
     def map(self, fn, *args, **kwargs):
         return type(self)({key: fn(val, *args, **kwargs) for key, val in self.items()})
@@ -186,6 +188,7 @@ def preserve_order(fn):
         result = fn(self, *args, **kwargs)
         result._order = self._order
         return result
+
     return wrapped
 
 
@@ -197,6 +200,7 @@ class Coordinate(MathDict):
     Coordinates can have maths done to do them, with either another Coordinate instance with the same keys (order
     independent) or a number.
     """
+
     default_order = None
 
     def __init__(self, *args, order=None, **kwargs):
@@ -216,14 +220,14 @@ class Coordinate(MathDict):
         except TypeError as e:
             keys = order or self.default_order
             if keys is None:
-                raise TypeError('Cannot parse arguments with no order') from e
+                raise TypeError("Cannot parse arguments with no order") from e
 
             if len(args) == len(keys):
                 values = args
             elif len(args[0]) == len(keys):
                 values = args[0]
             else:
-                raise TypeError('args do not match length of `order`') from e
+                raise TypeError("args do not match length of `order`") from e
 
             d = dict(zip(keys, values), **kwargs)
             super().__init__(d)
@@ -240,7 +244,7 @@ class Coordinate(MathDict):
         self._order = value
 
     def __setitem__(self, key, value):
-        raise NotImplementedError('Items cannot be set')
+        raise NotImplementedError("Items cannot be set")
 
     def to_list(self, order=None):
         return list(self.values(order))
@@ -264,8 +268,12 @@ class Coordinate(MathDict):
         return ItemsView(self._to_ordered_dict(order or self.order))
 
     def __repr__(self):
-        keyvals = ', '.join("{}: {}".format(repr(key), value) for key, value in self.items())
-        return '{class_name}({{{keyvals}}})'.format(class_name=type(self).__name__, keyvals=keyvals)
+        keyvals = ", ".join(
+            "{}: {}".format(repr(key), value) for key, value in self.items()
+        )
+        return "{class_name}({{{keyvals}}})".format(
+            class_name=type(self).__name__, keyvals=keyvals
+        )
 
     def _validate(self):
         """Not implemented, but called at the end of the constructor"""
@@ -303,10 +311,19 @@ def spaced_coordinate(name, keys, ordered=True):
     -------
     type
     """
+
     def validate(self):
         """Raise a ValueError if the instance's keys are incorrect"""
         if set(keys) != set(self):
-            raise ValueError('{} needs keys {} and got {}'.format(type(self).__name__, keys, tuple(self)))
+            raise ValueError(
+                "{} needs keys {} and got {}".format(
+                    type(self).__name__, keys, tuple(self)
+                )
+            )
 
-    new_class = type(name, (Coordinate, ), {'default_order': keys if ordered else None, '_validate': validate})
+    new_class = type(
+        name,
+        (Coordinate,),
+        {"default_order": keys if ordered else None, "_validate": validate},
+    )
     return new_class
