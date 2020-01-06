@@ -1,10 +1,13 @@
 import os
 from setuptools import setup, find_packages
+from runpy import run_path
 
 here = os.path.abspath(os.path.dirname(__file__))
 
 with open(os.path.join(here, 'README.md')) as f:
     readme = f.read()
+
+vers_dict = run_path(os.path.join(here, "coordinates", "version.py"))
 
 with open(os.path.join(here, 'coordinates', 'version.py')) as f:
     exec(f.read())
@@ -12,7 +15,7 @@ with open(os.path.join(here, 'coordinates', 'version.py')) as f:
 
 setup(
     name='coordinates',
-    version=__version__,
+    version=vers_dict["__version__"],
     packages=find_packages(exclude=('tests',)),
     url='https://github.com/clbarnes/coordinates',
     license='MIT',
@@ -31,5 +34,5 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     keywords='coordinate spatial mathdict',
-    python_requires='>=3.4'
+    python_requires='>=3.5'
 )
