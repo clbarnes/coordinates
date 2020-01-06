@@ -4,13 +4,13 @@
 
 Convenience class for dealing with coordinates which need both maths and explicit ordering.
 
-Supports python 3.4+
+Supports python 3.5+
 
 ## Motivation
 
 Numpy arrays are great for doing maths with coordinates stored as arrays.
 
-Dicts are great for dealing with coordinate systems where the order keeps changing 
+Dicts are great for dealing with coordinate systems where the order keeps changing
 (e.g. between C and Fortran order).
 
 But what if you want both?
@@ -43,7 +43,7 @@ Coordinate([('x', 1), ('y', 2)])
 Coordinate(x=1, y=2)
 ```
 
-If an order is defined (more on this later), you can also instantiate a `Coordinate` from a single 
+If an order is defined (more on this later), you can also instantiate a `Coordinate` from a single
 argument which is a sequence, or from a number of `*args`.
 
 ```python
@@ -55,7 +55,7 @@ Coordinate([1, 2])
 Coordinate(1, 2)
 ```
 
-Because `Mapping`s can be instantiated from other `Mapping`s, you can "extend" existing coordinates 
+Because `Mapping`s can be instantiated from other `Mapping`s, you can "extend" existing coordinates
 into new dimensions.
 
 ```python
@@ -70,10 +70,10 @@ Coordinate.from_sequence([(1, 2, 3), (3, 4, 5)], order='xyz')
 Coordinate.from_sequence([{'x': 1, 'y': 2}, {'x': 3, 'y': 4}], z=10)
 ```
 
-To note: 
+To note:
 
 - `order`-dependent instantiation is incompatible with `**kwargs`
-- Instantiation from a sequence of tuples will fail in 2D because it will be interpreted as 
+- Instantiation from a sequence of tuples will fail in 2D because it will be interpreted as
 key-value pairs. Use a comprehension here instead: `Coordinate.from_sequence(zip('xy', row) for row in sequence)`
 
 ### Maths
@@ -135,7 +135,7 @@ list(coord.items('yxz')) == [('y', 2), ('x', 1), ('z', 3)]
 
 The default order for a single instance can be given on instantiation, or mutated (this does not affect equality).
 
-The default order for all `Coordinate`s can be set on the class. This affects existing instances, but does not 
+The default order for all `Coordinate`s can be set on the class. This affects existing instances, but does not
 override their order if it was set explicitly.
 
 If neither an instance `order` or a class `default_order` is set, it falls back to reverse lexicographic.
@@ -169,5 +169,5 @@ attribute-like (`coord.z`) if the keys are strings.
 
 ## Note
 
-If you don't want the order-related functionality for another application, the base class `MathDict` is 
+If you don't want the order-related functionality for another application, the base class `MathDict` is
 implemented here too.
